@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
-    libvfn.url = "github:Joelgranados/libvfn/d7756ae53b8fd2e2dbc8b1b972fb3736d122906d";
+    libvfn.url = "github:Joelgranados/libvfn/cc68647b8a4d95d3cb101e036a5662dbb0f696d5";
   };
 
   outputs = { self, nixpkgs, libvfn, ... }:

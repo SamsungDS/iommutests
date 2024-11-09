@@ -2,20 +2,21 @@
   "nodes": {
     "libvfn": {
       "inputs": {
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "unstable": "unstable"
       },
       "locked": {
-        "lastModified": 1730968847,
-        "narHash": "sha256-d0RBNtUyp+BW3cssiScplKHGRawU8BAUSg9JGYnNbis=",
+        "lastModified": 1731154229,
+        "narHash": "sha256-Sxp+edR1SiPPw/pa0UddMCbox24AnVLMMNEQf6GaFho=",
         "owner": "Joelgranados",
         "repo": "libvfn",
-        "rev": "d7756ae53b8fd2e2dbc8b1b972fb3736d122906d",
+        "rev": "cc68647b8a4d95d3cb101e036a5662dbb0f696d5",
         "type": "github"
       },
       "original": {
         "owner": "Joelgranados",
         "repo": "libvfn",
-        "rev": "d7756ae53b8fd2e2dbc8b1b972fb3736d122906d",
+        "rev": "cc68647b8a4d95d3cb101e036a5662dbb0f696d5",
         "type": "github"
       }
     },
@@ -55,6 +56,22 @@
       "inputs": {
         "libvfn": "libvfn",
         "nixpkgs": "nixpkgs_2"
+      }
+    },
+    "unstable": {
+      "locked": {
+        "lastModified": 1731136726,
+        "narHash": "sha256-N3kbrHympxKvkYH/gnTQqofeAomx3Du1OkZFAgGwKz4=",
+        "owner": "Joelgranados",
+        "repo": "nixpkgs",
+        "rev": "71907ff4c25ac10e7de6dcd22c7d967146a10f5d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Joelgranados",
+        "ref": "master",
+        "repo": "nixpkgs",
+        "type": "github"
       }
     }
   },
