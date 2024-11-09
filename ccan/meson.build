@@ -74,6 +74,7 @@ ccan_config.set10('HAVE_BUILTIN_CHOOSE_EXPR',
 ccan_config.set10('HAVE_BUILTIN_TYPES_COMPATIBLE_P',
   cc.has_function('__builtin_types_compatible_p')
 )
+
 ccan_config.set10('HAVE_COMPOUND_LITERALS',
   cc.compiles('''
     int main(void) {
@@ -84,12 +85,18 @@ ccan_config.set10('HAVE_COMPOUND_LITERALS',
   args: ['-Werror']),
 )
 
+ccan_config.set10('HAVE_ERR_H',
+  cc.check_header('err.h')
+)
+
 ccan_config_h = configure_file(
   output: 'config.h',
   configuration: ccan_config,
 )
 
+ccan_include = include_directories('.')
 ccan_sources = [
+  'err/err.c',
   'opt/helpers.c',
   'opt/opt.c',
   'opt/parse.c',
