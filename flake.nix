@@ -22,6 +22,7 @@
           cmake
           clang-tools
           man-pages
+          python311Packages.pytest
         ];
         hardeningDisable = ["fortify"];
       };

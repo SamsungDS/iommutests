@@ -27,16 +27,17 @@ void dma_01_exit(const char *fmt, ...)
 {
 	exit(1);
 }
+
 void parse_options(int argc, char **argv)
 {
 	opt_register_table(dma_01_options, NULL);
 	opt_parse(&argc, argv, dma_01_exit);
 
 	if (show_usage)
-		opt_usage_and_exit(NULL);
+		opt_usage_exit_fail(NULL);
 
 	if (strcmp((bdf), ("")) == 0)
-		opt_usage_and_exit("Missing -d|--device parameter");
+		opt_usage_exit_fail(": Missing -d|--device parameter");
 
 	opt_free_table();
 }

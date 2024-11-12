@@ -96,13 +96,13 @@ ccan_config_h = configure_file(
 
 ccan_include = include_directories('.')
 ccan_sources = [
-  'err/err.c',
-  'opt/helpers.c',
-  'opt/opt.c',
-  'opt/parse.c',
-  'opt/usage.c',
+  'ccan/err/err.c',
+  'ccan/opt/helpers.c',
+  'ccan/opt/opt.c',
+  'ccan/opt/parse.c',
+  'ccan/opt/usage.c',
 ]
 
 ccan_lib = static_library(
   'ccan', [ccan_config_h, ccan_sources],
-  include_directories : '..')
+  include_directories : ccan_include)
