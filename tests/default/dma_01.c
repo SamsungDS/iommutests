@@ -45,7 +45,6 @@ void parse_options(int argc, char **argv)
 int main(int argc, char **argv)
 {
 	void *bar0;
-	ssize_t len;
 	void *vaddr;
 	uint64_t iova = IOVA_BASE;
 
@@ -60,28 +59,34 @@ int main(int argc, char **argv)
 	if (!bar0)
 		err(1, "failed to map bar");
 
-	len = pgmap(&vaddr, 0x1000);
-	if (len < 0)
+	if (pgmap(&vaddr, 0x1000) < 0)
 		err(1, "could not allocate aligned memory");
-
 	memset(vaddr, 0x42, 0x1000);
-
-	mmio_lh_write64(bar0 + REG_ADDR, iova);
-	mmio_write32(bar0 + REG_CMD, 0x3);
 
 	if (iommu_map_vaddr(pdev.dev.ctx, vaddr, 0x1000, &iova, IOMMU_MAP_FIXED_IOVA))
 		err(1, "failed to map page");
 
+	/* Set the iova address in device */
+	mmio_lh_write64(bar0 + REG_ADDR, iova);
+
+	/* Send command to transfer current value in vaddr to pcie device */
+	mmio_write32(bar0 + REG_CMD, 0x3);
+
+	/* Wait for write */
 	while (mmio_read32(bar0 + REG_CMD) & 0x1)
 		;
 
+	/* Make sure to change the vaddr so the test is valid */
 	memset(vaddr, 0x0, 0x1000);
 
+	/* Send command to transfer current device value into vaddr */
 	mmio_write32(bar0 + REG_CMD, 0x1);
 
+	/* Wait for write */
 	while (mmio_read32(bar0 + REG_CMD) & 0x1)
 		;
 
+	/* Do comparison */
 	for (int i = 0; i < 0x1000; i++) {
 		uint8_t byte = *(uint8_t *)(vaddr + i);
 
