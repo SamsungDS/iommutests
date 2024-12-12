@@ -26,7 +26,7 @@ def pci_dev_enumer(request):
     return dev_enumer
 
 def do_bind_to_vfio_pci(dev):
-    if not isinstance(dev, pyudev.device._device.Device):
+    if not isinstance(dev, pyudev.Device):
         pytest.fail("Arg to bind_to_vfio_pci must be a pyudev Device")
 
     vfio_pci_syspath = "/sys/bus/pci/drivers/vfio-pci"
@@ -35,8 +35,6 @@ def do_bind_to_vfio_pci(dev):
 
     if dev.driver == "vfio-pci":
         return;
-
-    orig_driver = dev.driver
 
     v_id = dev.attributes.asstring('vendor').removeprefix('0x')
     d_id = dev.attributes.asstring('device').removeprefix('0x')
