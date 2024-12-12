@@ -21,8 +21,10 @@
           pkg-config
           cmake
           clang-tools
+          nodePackages.pyright
           man-pages
           python311Packages.pytest
+          python311Packages.pyudev
         ];
         hardeningDisable = ["fortify"];
       };
