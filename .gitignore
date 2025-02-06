@@ -1,2 +1,4 @@
 .cache
 .nvimrc
+compile_commands.json
+
