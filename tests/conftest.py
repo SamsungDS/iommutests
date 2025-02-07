@@ -31,7 +31,9 @@ def do_bind_to_vfio_pci(dev):
 
     vfio_pci_syspath = "/sys/bus/pci/drivers/vfio-pci"
     if not os.path.isdir(vfio_pci_syspath):
-        pytest.fail(f"Path not found: {vfio_pci_syspath}")
+        # Incorrect environment is not a failure. Skip with an informative message
+        pytest.skip(f"Path not found: {vfio_pci_syspath}; Are CONFIG_VFIO "
+                    "and CONFIG_VFIO_PCI missing from Kernel conf?")
 
     if dev.driver == "vfio-pci":
         return;
