@@ -61,16 +61,12 @@ def do_bind_to_vfio_pci(dev):
         with open(os.path.join(vfio_pci_syspath, "new_id"), 'w') as newid_file:
             newid_file.write(f"{v_id} {d_id}")
     except Exception as e:
-        pytest.fail(f"Could not add {dev.sys_name} ID to vfio-pci driver: {e}")
-
-    # Bind to vfio-pci driver
-    try:
-        with open(os.path.join(vfio_pci_syspath, "bind"), 'w') as bind_file:
-            bind_file.write(dev.sys_name)
-    except Exception as e:
-        pytest.fail(f"Could not bind {dev.sys_name} to vfio-pci: {e}")
-
-    #yield # Execute after test
+        # "new_id" failed, try to use "bind".
+        try:
+            with open(os.path.join(vfio_pci_syspath, "bind"), 'w') as bind_file:
+                bind_file.write(dev.sys_name)
+        except Exception as e:
+            pytest.fail(f"Could not bind {dev.sys_name} to vfio-pci: {e}")
 
 @pytest.fixture
 def bind_to_vfio_pci():
