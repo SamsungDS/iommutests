@@ -5,12 +5,14 @@ import os.path
 
 sys_pci_ctx =  pyudev.Context()
 
-@pytest.fixture
-def check_file(request):
-    file_path = request.param
+def do_check_file(file_path):
     if not os.path.exists(file_path):
         pytest.skip("Skipping test: {file_path} is missing")
     return file_path
+
+@pytest.fixture
+def check_file():
+    return do_check_file
 
 @pytest.fixture
 def pci_dev_enumer(request):

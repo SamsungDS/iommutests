@@ -10,12 +10,15 @@ def dma_01(bdf):
     pprint.pprint (result.__dict__)
     return result.returncode == 0
 
-@pytest.mark.parametrize("check_file", [test_exec])
+@pytest.fixture(scope="function", autouse=True)
+def pre_check(check_file):
+    check_file(test_exec)
+
 @pytest.mark.parametrize(
         "pci_dev_enumer",
         [{"device": "0x11e9", "vendor": "0x1234"}],
         indirect = True)
-def test_dma_01(capsys, check_file, pci_dev_enumer, bind_to_vfio_pci):
+def test_dma_01(capsys, pci_dev_enumer, bind_to_vfio_pci):
     pci_dev_list = list(pci_dev_enumer)
     if len(pci_dev_list) < 1:
         pytest.skip("No devices found for these parameters")
