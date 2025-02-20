@@ -4,6 +4,7 @@ import os
 import os.path
 
 sys_pci_ctx =  pyudev.Context()
+sys_drivers = "/sys/bus/pci/drivers"
 
 def do_check_file(file_path):
     if not os.path.exists(file_path):
@@ -37,14 +38,14 @@ def do_unbind_from_driver(dev):
 
     # Unbind from current driver
     try:
-        with open(os.path.join(dev.sys_path, "driver", "unbind")) as drv_file:
+        with open(os.path.join(dev.sys_path, "driver", "unbind"), 'w') as drv_file:
             drv_file.write(dev.sys_name)
     except Exception as e:
         pytest.fail(f"Could not unbind {dev.sys_name} from its driver: {e}")
 
     # Remove ID from current driver
     try:
-        with open(os.path.join(dev.sys_path, "driver", "remove-id")) as removeid_file:
+        with open(os.path.join(sys_drivers, dev.driver, "remove_id"), 'w') as removeid_file:
             removeid_file.write(f"{v_id} {d_id}")
     except Exception as e:
         pytest.fail(f"Could not remove {dev.sys_name} ID from its driver: {e}")
@@ -55,7 +56,7 @@ def do_bind_to_vfio_pci(dev):
     if dev.driver == "vfio-pci":
         return;
 
-    vfio_pci_syspath = "/sys/bus/pci/drivers/vfio-pci"
+    vfio_pci_syspath = os.path.join(sys_drivers, "vfio-pci")
     if not os.path.isdir(vfio_pci_syspath):
         # Incorrect environment is not a failure. Skip with an informative message
         pytest.skip(f"Path not found: {vfio_pci_syspath}; Are CONFIG_VFIO "
