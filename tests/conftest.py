@@ -27,9 +27,33 @@ def pci_dev_enumer(request):
 
     return dev_enumer
 
+def do_unbind_from_driver(dev):
+    # return if it is already unbound
+    if dev.driver == None:
+        return;
+
+    v_id = dev.attributes.asstring('vendor').removeprefix('0x')
+    d_id = dev.attributes.asstring('device').removeprefix('0x')
+
+    # Unbind from current driver
+    try:
+        with open(os.path.join(dev.sys_path, "driver", "unbind")) as drv_file:
+            drv_file.write(dev.sys_name)
+    except Exception as e:
+        pytest.fail(f"Could not unbind {dev.sys_name} from its driver: {e}")
+
+    # Remove ID from current driver
+    try:
+        with open(os.path.join(dev.sys_path, "driver", "remove-id")) as removeid_file:
+            removeid_file.write(f"{v_id} {d_id}")
+    except Exception as e:
+        pytest.fail(f"Could not remove {dev.sys_name} ID from its driver: {e}")
+
+
 def do_bind_to_vfio_pci(dev):
-    if not isinstance(dev, pyudev.Device):
-        pytest.fail("Arg to bind_to_vfio_pci must be a pyudev Device")
+    # return if already bound
+    if dev.driver == "vfio-pci":
+        return;
 
     vfio_pci_syspath = "/sys/bus/pci/drivers/vfio-pci"
     if not os.path.isdir(vfio_pci_syspath):
@@ -37,26 +61,8 @@ def do_bind_to_vfio_pci(dev):
         pytest.skip(f"Path not found: {vfio_pci_syspath}; Are CONFIG_VFIO "
                     "and CONFIG_VFIO_PCI missing from Kernel conf?")
 
-    if dev.driver == "vfio-pci":
-        return;
-
     v_id = dev.attributes.asstring('vendor').removeprefix('0x')
     d_id = dev.attributes.asstring('device').removeprefix('0x')
-
-    if dev.driver is not None:
-        # Unbind from current driver
-        try:
-            with open(os.path.join(dev.sys_path, "driver", "unbind")) as drv_file:
-                drv_file.write(dev.sys_name)
-        except Exception as e:
-            pytest.fail(f"Could not unbind {dev.sys_name} from its driver: {e}")
-
-        # Remove ID from current driver
-        try:
-            with open(os.path.join(dev.sys_path, "driver", "remove-id")) as removeid_file:
-                removeid_file.write(f"{v_id} {d_id}")
-        except Exception as e:
-            pytest.fail(f"Could not remove {dev.sys_name} ID from its driver: {e}")
 
     # Add new ID to the vfio-pci driver
     try:
@@ -70,6 +76,18 @@ def do_bind_to_vfio_pci(dev):
         except Exception as e:
             pytest.fail(f"Could not bind {dev.sys_name} to vfio-pci: {e}")
 
+def do_mod_binding_vfio_pci(dev, unbind_only=False):
+    if not isinstance(dev, pyudev.Device):
+        pytest.fail("Arg to do_mod_binding_vfio_pci must be a pyudev Device")
+
+    if dev.driver is not None:
+        do_unbind_from_driver(dev)
+
+    if not unbind_only:
+        do_bind_to_vfio_pci(dev)
+
 @pytest.fixture
-def bind_to_vfio_pci():
-    return do_bind_to_vfio_pci
+def mod_binding_vfio_pci():
+    return do_mod_binding_vfio_pci
+
+
