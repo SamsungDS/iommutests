@@ -80,6 +80,8 @@ def do_mod_binding_vfio_pci(dev, unbind_only=False):
     if not isinstance(dev, pyudev.Device):
         pytest.fail("Arg to do_mod_binding_vfio_pci must be a pyudev Device")
 
+    # Make sure we get the latest device state
+    dev = pyudev.Device.from_sys_path(sys_pci_ctx, dev.sys_path)
     if dev.driver is not None:
         do_unbind_from_driver(dev)
 
