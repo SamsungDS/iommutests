@@ -6,14 +6,14 @@ import os.path
 sys_pci_ctx =  pyudev.Context()
 sys_drivers = "/sys/bus/pci/drivers"
 
-def do_check_file(file_path):
-    if not os.path.exists(file_path):
-        pytest.skip("Skipping test: {file_path} is missing")
-    return file_path
-
 @pytest.fixture
 def check_file():
-    return do_check_file
+    def _factory(file_path):
+        if not os.path.exists(file_path):
+            pytest.skip("Skipping test: {file_path} is missing")
+        return file_path
+
+    return _factory
 
 @pytest.fixture
 def pci_dev_enumer(request):
@@ -77,20 +77,18 @@ def do_bind_to_vfio_pci(dev):
         except Exception as e:
             pytest.fail(f"Could not bind {dev.sys_name} to vfio-pci: {e}")
 
-def do_mod_binding_vfio_pci(dev, unbind_only=False):
-    if not isinstance(dev, pyudev.Device):
-        pytest.fail("Arg to do_mod_binding_vfio_pci must be a pyudev Device")
-
-    # Make sure we get the latest device state
-    dev = pyudev.Devices.from_sys_path(sys_pci_ctx, dev.sys_path)
-    if dev.driver is not None:
-        do_unbind_from_driver(dev)
-
-    if not unbind_only:
-        do_bind_to_vfio_pci(dev)
-
 @pytest.fixture
 def mod_binding_vfio_pci():
-    return do_mod_binding_vfio_pci
+    def _factory(dev, unbind_only=False):
+        if not isinstance(dev, pyudev.Device):
+            pytest.fail("Arg to do_mod_binding_vfio_pci must be a pyudev Device")
 
+        # Make sure we get the latest device state
+        dev = pyudev.Devices.from_sys_path(sys_pci_ctx, dev.sys_path)
+        if dev.driver is not None:
+            do_unbind_from_driver(dev)
 
+        if not unbind_only:
+            do_bind_to_vfio_pci(dev)
+
+    return _factory
