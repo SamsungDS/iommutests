@@ -2,6 +2,8 @@ import pytest
 import pyudev
 import os
 import os.path
+import subprocess
+import pprint
 
 sys_pci_ctx =  pyudev.Context()
 sys_drivers = "/sys/bus/pci/drivers"
@@ -92,3 +94,17 @@ def mod_binding_vfio_pci():
             do_bind_to_vfio_pci(dev)
 
     return _factory
+
+@pytest.fixture
+def exec_cmd():
+    def _factory(cmd):
+        if not isinstance(cmd, list):
+            pytest.fail("exec_cmd only accepts command lists")
+
+        result = subprocess.run(cmd ,stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        pprint.pprint (result.__dict__)
+        return result.returncode == 0
+
+    return _factory
+
+
