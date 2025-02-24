@@ -49,7 +49,6 @@ int main(int argc, char **argv)
 	uint64_t iova = IOVA_BASE;
 
 	parse_options(argc, argv);
-	fprintf(stdout, "first output\n");
 	fprintf(stdout, "This is device %s\n", bdf);
 
 	if (vfio_pci_open(&pdev, bdf))
