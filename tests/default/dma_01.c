@@ -14,11 +14,13 @@
 #define IOVA_BASE 0xfef00000
 
 bool show_usage;
+bool test_iopf;
 char *bdf = "";
 struct vfio_pci_device pdev;
 
 struct opt_table dma_01_options[] = {
 	OPT_WITHOUT_ARG("-h|--help", opt_set_bool, &show_usage, "show usage"),
+	OPT_WITHOUT_ARG("-i|--iopf", opt_set_bool, &test_iopf, "follow iopf path"),
 	OPT_WITH_ARG("-d|--device BDF", opt_set_charp, opt_show_charp, &bdf, "pci device"),
 	OPT_ENDTABLE,
 };
@@ -49,6 +51,10 @@ int main(int argc, char **argv)
 	uint64_t iova = IOVA_BASE;
 
 	parse_options(argc, argv);
+
+	if (test_iopf)
+		return 1;
+
 	fprintf(stdout, "This is device %s\n", bdf);
 
 	if (vfio_pci_open(&pdev, bdf))
