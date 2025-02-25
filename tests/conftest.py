@@ -107,4 +107,6 @@ def exec_cmd():
 
     return _factory
 
-
+@pytest.fixture
+def echo_param(request):
+    return request.param
