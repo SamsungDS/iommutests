@@ -24,7 +24,7 @@ def setup_and_teardown(pci_dev_enumer, mod_binding_vfio_pci):
         [{"device": "0x11e9", "vendor": "0x1234"}],
         indirect = True)
 @pytest.mark.parametrize("echo_param",
-        [[], ["--iopf"]], indirect = True)
+        [[], ["--fail"]], indirect = True)
 def test_dma_01(capsys, setup_and_teardown, exec_cmd, echo_param):
     pci_enumer = setup_and_teardown
     for pci_dev in pci_enumer:
