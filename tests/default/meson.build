@@ -1,3 +1,5 @@
+libvfn = dependency('libvfn', version : '>=5.0.0')
+
 executable('dma_01', ['dma_01.c', ccan_config_h],
   dependencies : [libvfn],
   link_with: [ccan_lib],
