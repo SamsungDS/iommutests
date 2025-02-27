@@ -4,4 +4,4 @@ configure_file (
   copy: true
 )
 
-subdir('default')
+subdir('demo0')
