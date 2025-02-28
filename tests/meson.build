@@ -4,4 +4,6 @@ configure_file (
   copy: true
 )
 
-subdir('demo0')
+if get_option('gen_demo0')
+  subdir('demo0')
+endif
