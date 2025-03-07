@@ -12,7 +12,7 @@ sys_drivers = "/sys/bus/pci/drivers"
 def check_file():
     def _factory(file_path):
         if not os.path.exists(file_path):
-            pytest.skip("Skipping test: {file_path} is missing")
+            pytest.skip(f"Skipping test: {file_path} is missing")
         return file_path
 
     return _factory
