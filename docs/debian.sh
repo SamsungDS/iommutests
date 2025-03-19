@@ -3,11 +3,18 @@ UBUNTU_IMG="ubuntu-24.04-server-cloudimg-amd64.img"
 USER_DATA_FILE="user-data"
 META_DATA_FILE="meta-data"
 
+print_red()
+{
+  local msg="$1"
+  echo -e "\e[31m${msg}\e[0m"
+}
+
 exec_cmd()
 {
   local cmd="$1"
-  echo "${cmd}"
-  ${cmd}
+  print_red "${cmd}"
+  sleep 1
+  eval "${cmd}"
 
   if [ $? != 0 ]; then
     echo "Error executing ${cmd}"
@@ -18,14 +25,15 @@ exec_cmd()
 exec_ssh()
 {
   local cmd="$1"
-  echo "${cmd}"
-  ssh -p 2222 vmuser@localhost "${cmd}"
+  local ssh_cmd="ssh -p 2222 -o StrictHostKeyChecking=no vmuser@localhost \"${cmd}\""
+  print_red "${ssh_cmd}"
+  sleep 1
+  eval ${ssh_cmd}
 }
 
 pause()
 {
-  sleep 0
-  #sleep 5
+  sleep 3
 }
 
 clean()
@@ -36,24 +44,27 @@ clean()
   ssh-keygen -f ~/.ssh/known_hosts -R '[localhost]:2222'
 }
 
-echo "* clean current directory"
+print_red "* clean current directory"
+pause
 clean
 
-echo "* Install Deps"
+print_red "* Install Deps"
+pause
 exec_cmd "sudo apt-get install git mkisofs"
-pause
 
-echo "* Shallow clone qemu https://github.com/Joelgranados/qemu.git"
+print_red "* Shallow clone pcie-testdev branch in https://github.com/Joelgranados/qemu.git"
+pause
 exec_cmd "git clone --depth 1 -b pcie-testdev https://github.com/Joelgranados/qemu.git"
-pause
 
-echo "* build qemu"
+print_red "* build qemu"
+pause
 exec_cmd "pushd qemu"
 exec_cmd "./configure --target-list=x86_64-softmmu --disable-docs"
 exec_cmd "make -j32"
 exec_cmd "popd"
 
-echo "* download cloud image"
+print_red "* download cloud image"
+pause
 exec_cmd "wget https://cloud-images.ubuntu.com/releases/noble/release/${UBUNTU_IMG}"
 
 pub_key="$(<"$HOME/.ssh/id_ed25519.pub")"
@@ -71,6 +82,10 @@ users:
     plain_text_passwd: 'vmuser'
     ssh_authorized_keys:
       -  ${pub_key}
+
+power_state:
+  mode: poweroff
+  condition: true
 "
 
 cat > ${USER_DATA_FILE} <<EOF
@@ -80,48 +95,68 @@ EOF
 
 META_DATA_STR="
 #cloud-config
-power_state:
-  mode: poweroff
-  condition: true
 "
 cat > ${META_DATA_FILE} <<EOF
 ${META_DATA_STR}
 EOF
 
-echo "* create cloud init setup file"
+print_red "* create cloud init setup file"
+pause
 exec_cmd "mkisofs -output seed.img -volid cidata -joliet -rock ${USER_DATA_FILE} ${META_DATA_FILE}"
 
-echo "* Execute Qemu"
-qemu_cmd="sudo ./qemu/build/qemu-system-x86_64
-            -nodefaults
-            -display none
-            -machine q35,accel=kvm,kernel-irqchip=split
-            -cpu host -smp 4 -m 8G
-            -device intel-iommu,intremap=on,device-iotlb=on,x-scalable-mode=on
-            -netdev user,id=net0,hostfwd=tcp::2222-:22
-            -device virtio-net-pci,netdev=net0
-            -device virtio-rng-pci
-            -drive id=boot,file=${UBUNTU_IMG},format=qcow2,if=virtio,discard=unmap,media=disk,read-only=no
+qemu_cmd="sudo ./qemu/build/qemu-system-x86_64 \
+            -nodefaults \
+            -display none \
+            -machine q35,accel=kvm,kernel-irqchip=split \
+            -cpu host -smp 4 -m 8G \
+            -device intel-iommu,intremap=on,device-iotlb=on,x-scalable-mode=on \
+            -netdev user,id=net0,hostfwd=tcp::2222-:22 \
+            -device virtio-net-pci,netdev=net0 \
+            -device virtio-rng-pci \
+            -drive id=boot,file=${UBUNTU_IMG},format=qcow2,if=virtio,discard=unmap,media=disk,read-only=no \
             -device pcie-ats-testdev"
 
-#-serial mon:stdio
-exec_cmd "${qemu_cmd}
-            -daemonize
+print_red "* Prep Qemu"
+pause
+exec_cmd "${qemu_cmd} \
+            -serial mon:stdio \
             -drive id=cloud-init-seed,file=seed.img,format=raw,media=cdrom"
 
-sleep 5
+print_red "* Exec Qemu"
+pause
+KERNEL_BDIR="$HOME/src/iommu/biommutests"
+exec_cmd "${qemu_cmd} \
+            -daemonize \
+            -kernel ${KERNEL_BDIR}/arch/x86_64/boot/bzImage \
+            -append \"root=/dev/vda1 console=ttyS0,115200 audit=0 earlyprintk=serial nokaslr\" \
+            -virtfs local,path=${KERNEL_BDIR},security_model=none,readonly=on,mount_tag=kernel_dir"
+
+pause
 
 LIBVFN_INST_DIR="/home/vmuser/libvfn/inst/"
 LIBVFN_PKG="${LIBVFN_INST_DIR}/lib/x86_64-linux-gnu/pkgconfig"
 PACKAGES="meson libnvme-dev pkg-config python3 python3-pytest python3-pyudev"
+
+print_red "* Install deps in VM"
+pause
 exec_ssh "sudo apt-get update"
 exec_ssh "yes \"\" | sudo apt-get install git ${PACKAGES}"
+
+print_red "* Build libvfn"
+pause
 exec_ssh "git clone https://github.com/SamsungDS/libvfn.git"
 exec_ssh "pushd libvfn && meson setup builddir --prefix=${LIBVFN_INST_DIR}"
 exec_ssh "pushd libvfn && meson compile -C builddir"
 exec_ssh "pushd libvfn && meson install -C builddir"
+
+print_red "* build iommutests"
+pause
 exec_ssh "git clone https://github.com/SamsungDS/iommutests.git"
 exec_ssh "pushd iommutests && meson setup builddir -Dpkg_config_path=${LIBVFN_PKG}"
 exec_ssh "pushd iommutests && meson compile -C builddir"
-exec_ssh "pushd iommutests/builddir && pytest -rs"
+
+print_red "* Run iommutests"
+pause
+exec_ssh "pushd iommutests/builddir && sudo pytest -rs"
+exec_ssh "sudo poweroff"
 
