@@ -6,6 +6,7 @@ IOMMU tests provides the infrastructure to test the software as well as
 hardware components of Direct Memory Access interactions orchestrated by an
 IOMMU (Input Output Memory Management Unit). It provides the following
 functionalities:
+
 1. Libraries and common reusable user space code that enables the creation of
    IOMMU tests.
 2. A pytest orchestration infrastructure that is able to execute tests
@@ -39,3 +40,10 @@ Contributing
 ============
 
 See `CONTRIBUTING <CONTRIBUTING>`_.
+
+
+Demo 0
+======
+
+If you are curious how iommutests work, the 0 demo describes (with a script)
+how that would look like. See `demo0 <docs/demo0.md>`_
