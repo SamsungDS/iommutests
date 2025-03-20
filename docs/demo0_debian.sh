@@ -9,25 +9,43 @@ print_red()
   echo -e "\e[31m${msg}\e[0m"
 }
 
-exec_cmd()
+prnt_cmd()
 {
   local cmd="$1"
   print_red "${cmd}"
   sleep 1
-  eval "${cmd}"
+}
 
-  if [ $? != 0 ]; then
+hndl_err()
+{
+  local err=$1
+  if [ ${err} != 0 ]; then
     echo "Error executing ${cmd}"
     exit 1
   fi
+
+}
+
+exec_cmd_silent()
+{
+  local cmd="$1"
+  prnt_cmd "${cmd}"
+  eval "${cmd}" > /dev/null 2>&1
+  hndl_err $?
+}
+
+exec_cmd()
+{
+  local cmd="$1"
+  prnt_cmd "${cmd}"
+  eval "${cmd}"
+  hndl_err $?
 }
 
 exec_ssh()
 {
-  local cmd="$1"
-  local ssh_cmd="ssh -p 2222 -o StrictHostKeyChecking=no vmuser@localhost \"${cmd}\""
-  print_red "${ssh_cmd}"
-  sleep 1
+  local ssh_cmd="ssh -p 2222 -o StrictHostKeyChecking=no vmuser@localhost \"$1\""
+  prnt_cmd "${ssh_cmd}"
   eval ${ssh_cmd}
 }
 
@@ -39,7 +57,7 @@ pause()
 clean()
 {
   for f in qemu seed.img seed.qcow2 ${USER_DATA_FILE} ${META_DATA_FILE} ${UBUNTU_IMG} ; do
-    exec_cmd "rm -rfv ${f}"
+    exec_cmd "rm -rf ${f}"
   done
   ssh-keygen -f ~/.ssh/known_hosts -R '[localhost]:2222'
 }
@@ -59,8 +77,8 @@ exec_cmd "git clone --depth 1 -b pcie-testdev https://github.com/Joelgranados/qe
 print_red "* build qemu"
 pause
 exec_cmd "pushd qemu"
-exec_cmd "./configure --target-list=x86_64-softmmu --disable-docs"
-exec_cmd "make -j32"
+exec_cmd_silent "./configure --target-list=x86_64-softmmu --disable-docs"
+exec_cmd_silent "make -s -j32"
 exec_cmd "popd"
 
 print_red "* download cloud image"
@@ -118,14 +136,14 @@ qemu_cmd="sudo ./qemu/build/qemu-system-x86_64 \
 
 print_red "* Prep Qemu"
 pause
-exec_cmd "${qemu_cmd} \
+exec_cmd_silent "${qemu_cmd} \
             -serial mon:stdio \
             -drive id=cloud-init-seed,file=seed.img,format=raw,media=cdrom"
 
 print_red "* Exec Qemu"
 pause
 KERNEL_BDIR="$HOME/src/iommu/biommutests"
-exec_cmd "${qemu_cmd} \
+exec_cmd_silent "${qemu_cmd} \
             -daemonize \
             -kernel ${KERNEL_BDIR}/arch/x86_64/boot/bzImage \
             -append \"root=/dev/vda1 console=ttyS0,115200 audit=0 earlyprintk=serial nokaslr\" \
@@ -135,25 +153,25 @@ pause
 
 LIBVFN_INST_DIR="/home/vmuser/libvfn/inst/"
 LIBVFN_PKG="${LIBVFN_INST_DIR}/lib/x86_64-linux-gnu/pkgconfig"
-PACKAGES="meson libnvme-dev pkg-config python3 python3-pytest python3-pyudev"
+PACKAGES="git meson libnvme-dev pkg-config python3 python3-pytest python3-pyudev"
 
 print_red "* Install deps in VM"
 pause
-exec_ssh "sudo apt-get update"
-exec_ssh "yes \"\" | sudo apt-get install git ${PACKAGES}"
+exec_ssh "sudo apt-get update > /dev/null 2>&1"
+exec_ssh "yes \"\" | sudo apt-get install ${PACKAGES} > /dev/null 2>&1"
 
 print_red "* Build libvfn"
 pause
-exec_ssh "git clone https://github.com/SamsungDS/libvfn.git"
-exec_ssh "pushd libvfn && meson setup builddir --prefix=${LIBVFN_INST_DIR}"
-exec_ssh "pushd libvfn && meson compile -C builddir"
-exec_ssh "pushd libvfn && meson install -C builddir"
+exec_ssh "git clone https://github.com/SamsungDS/libvfn.git > /dev/null 2>&1"
+exec_ssh "pushd libvfn && meson setup builddir --prefix=${LIBVFN_INST_DIR} > /dev/null 2>&1"
+exec_ssh "pushd libvfn && meson compile -C builddir > /dev/null 2>&1"
+exec_ssh "pushd libvfn && meson install -C builddir > /dev/null 2>&1"
 
 print_red "* build iommutests"
 pause
-exec_ssh "git clone https://github.com/SamsungDS/iommutests.git"
-exec_ssh "pushd iommutests && meson setup builddir -Dpkg_config_path=${LIBVFN_PKG}"
-exec_ssh "pushd iommutests && meson compile -C builddir"
+exec_ssh "git clone https://github.com/SamsungDS/iommutests.git > /dev/null 2>&1"
+exec_ssh "pushd iommutests && meson setup builddir -Dpkg_config_path=${LIBVFN_PKG} > /dev/null 2>&1"
+exec_ssh "pushd iommutests && meson compile -C builddir > /dev/null 2>&1"
 
 print_red "* Run iommutests"
 pause
