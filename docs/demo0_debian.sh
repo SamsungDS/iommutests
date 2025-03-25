@@ -62,6 +62,17 @@ clean()
   ssh-keygen -f ~/.ssh/known_hosts -R '[localhost]:2222'
 }
 
+PUB_KEY=
+KERNEL_BDIR=
+if [ "$#" -eq 2 ]; then
+  PUB_KEY="$1"
+  KERNEL_BDIR="$2"
+else
+  echo "You are missing arguments:"
+  echo "Usage: demo0_debian.sh <public key path> <kerne build dir>"
+  exit
+fi
+
 print_red "* clean current directory"
 pause
 clean
@@ -85,7 +96,7 @@ print_red "* download cloud image"
 pause
 exec_cmd "wget https://cloud-images.ubuntu.com/releases/noble/release/${UBUNTU_IMG}"
 
-pub_key="$(<"$HOME/.ssh/id_ed25519.pub")"
+pub_key="$(<"${PUB_KEY}")"
 USER_DATA_STR="
 #cloud-config
 disable_root: false
@@ -142,7 +153,6 @@ exec_cmd_silent "${qemu_cmd} \
 
 print_red "* Exec Qemu"
 pause
-KERNEL_BDIR="$HOME/src/iommu/biommutests"
 exec_cmd_silent "${qemu_cmd} \
             -daemonize \
             -kernel ${KERNEL_BDIR}/arch/x86_64/boot/bzImage \
