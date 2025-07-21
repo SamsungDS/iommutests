@@ -2,9 +2,11 @@ import os.path
 import pytest
 
 test_exec = os.path.join(os.path.dirname(__file__), "dma_01")
+
 @pytest.fixture(scope="function", autouse=True)
-def pre_check(check_file):
+def pre_check(check_file, check_iommu_groups):
     check_file(test_exec)
+    check_iommu_groups()
 
 @pytest.fixture
 def setup_and_teardown(pci_dev_enumer, mod_binding_vfio_pci):

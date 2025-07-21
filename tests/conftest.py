@@ -12,8 +12,22 @@ sys_drivers = "/sys/bus/pci/drivers"
 def check_file():
     def _factory(file_path):
         if not os.path.exists(file_path):
-            pytest.skip(f"Skipping test: {file_path} is missing")
+            pytest.skip(f"Why skip: {file_path} is missing")
         return file_path
+
+    return _factory
+
+@pytest.fixture
+def check_iommu_groups():
+    def _factory():
+        iommu_group_path = "/sys/kernel/iommu_groups"
+        if os.path.isdir(iommu_group_path):
+            for entry in os.listdir(iommu_group_path):
+                full_path = os.path.join(iommu_group_path, entry)
+                if os.path.isdir(full_path) and os.listdir(full_path):
+                    return
+
+        pytest.skip(f"Why skip: Iommu groups missing under {iommu_group_path}")
 
     return _factory
 
@@ -69,8 +83,10 @@ def do_bind_to_vfio_pci(dev):
 
     # Add new ID to the vfio-pci driver
     try:
+
         with open(os.path.join(vfio_pci_syspath, "new_id"), 'w') as newid_file:
             newid_file.write(f"{v_id} {d_id}")
+
     except Exception as e:
         # "new_id" failed, try to use "bind".
         try:
