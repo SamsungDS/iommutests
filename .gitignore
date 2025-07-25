@@ -2,3 +2,5 @@
 .nvimrc
 compile_commands.json
 
+.claude
+CLAUDE.md

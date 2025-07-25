@@ -112,6 +112,20 @@ def mod_binding_vfio_pci():
     return _factory
 
 @pytest.fixture
+def setup_and_teardown(pci_dev_enumer, mod_binding_vfio_pci):
+    pci_enumer = pci_dev_enumer
+    if len(list(pci_enumer)) < 1:
+        pytest.skip("No devices found for these parameters")
+
+    for pci_dev in pci_enumer:
+        mod_binding_vfio_pci(pci_dev)
+
+    yield pci_enumer
+
+    for pci_dev in pci_enumer:
+        mod_binding_vfio_pci(pci_dev, unbind_only=True)
+
+@pytest.fixture
 def exec_cmd():
     def _factory(cmd):
         if not isinstance(cmd, list):
@@ -120,6 +134,16 @@ def exec_cmd():
         result = subprocess.run(cmd ,stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         pprint.pprint (result.__dict__)
         return result.returncode == 0
+
+    return _factory
+
+@pytest.fixture
+def check_iommufd():
+    def _factory():
+        iommufd_path = "/dev/iommu"
+        if not os.path.exists(iommufd_path):
+            pytest.skip(f"Why skip: {iommufd_path} not found - IOMMUFD not available")
+        return True
 
     return _factory
 
