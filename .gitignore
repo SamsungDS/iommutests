@@ -1,5 +1,6 @@
 .cache
 .nvimrc
+.editorconfig
 compile_commands.json
 
 .claude
