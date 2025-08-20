@@ -6,4 +6,11 @@ iommut_install_dir = 'share/iommut'
 subdir('ccan')
 subdir('tests')
 
-install_data('iommut', install_dir: iommut_install_dir)
+# Point iommut to installed tests
+configure_file(
+  input: 'iommut',
+  output: 'iommut',
+  configuration: {'IOMMUT_INSTALL_DIR': get_option('prefix') / iommut_install_dir},
+  install: true,
+  install_dir: get_option('bindir')
+)
