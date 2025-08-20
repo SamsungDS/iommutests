@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+: "${IOMMUT_TESTS_DIRECTORY:="$(realpath "./tests")"}"
+
+if ! command -v pytest >/dev/null; then
+  echo "pytest is not installed"
+  exit 1
+fi
+
+pytest "${IOMMUT_TESTS_DIRECTORY}"
+
