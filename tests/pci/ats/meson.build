@@ -4,11 +4,8 @@ executable('iopf_01', ['iopf_01.c', ccan_config_h],
   dependencies : [libvfn],
   link_with: [ccan_lib],
   include_directories : ccan_include,
-  install: true
+  install: true,
+  install_dir: 'share/iommut/tests/pci/ats'
 )
 
-configure_file(
-  input : 'test_iopf_01.py',
-  output: 'test_iopf_01.py',
-  copy: true
-)
+install_data('test_iopf_01.py', install_dir: 'share/iommut/tests/pci/ats')
