@@ -29,6 +29,14 @@
             pkg-config
             libvfn.packages.${pkgs.system}.default
           ];
+
+          installPhase = ''
+            runHook preInstall
+
+            meson install --destdir "$out"
+
+            runHook postInstall
+          '';
         };
         default = iommut;
       });
