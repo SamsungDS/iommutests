@@ -5,8 +5,8 @@ executable('dma_01', ['dma_01.c', ccan_config_h],
   link_with: [ccan_lib],
   include_directories : ccan_include,
   install: true,
-  install_dir: iommut_install_dir / 'tests/demo0'
+  install_dir: datadir / 'tests/demo0'
 )
 
-install_data('test_dma_01.py', install_dir: iommut_install_dir / 'tests/demo0')
+install_data('test_dma_01.py', install_dir: datadir / 'tests/demo0')
 

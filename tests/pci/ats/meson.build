@@ -5,7 +5,7 @@ executable('iopf_01', ['iopf_01.c', ccan_config_h],
   link_with: [ccan_lib],
   include_directories : ccan_include,
   install: true,
-  install_dir: iommut_install_dir / 'tests/pci/ats'
+  install_dir: datadir / 'tests/pci/ats'
 )
 
-install_data('test_iopf_01.py', install_dir: iommut_install_dir / 'tests/pci/ats')
+install_data('test_iopf_01.py', install_dir: datadir / 'tests/pci/ats')

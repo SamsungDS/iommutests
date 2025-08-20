@@ -1,7 +1,7 @@
 project('iommutests', 'c')
 cc = meson.get_compiler('c')
 
-iommut_install_dir = 'share/iommut'
+datadir = 'share/iommut'
 
 subdir('ccan')
 subdir('tests')
@@ -10,7 +10,7 @@ subdir('tests')
 configure_file(
   input: 'iommut',
   output: 'iommut',
-  configuration: {'IOMMUT_INSTALL_DIR': get_option('prefix') / iommut_install_dir},
+  configuration: {'IOMMUT_INSTALL_DIR': get_option('prefix') / datadir},
   install: true,
   install_dir: get_option('bindir')
 )

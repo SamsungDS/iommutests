@@ -1,4 +1,4 @@
-install_data('conftest.py', install_dir: iommut_install_dir / 'tests')
+install_data('conftest.py', install_dir: datadir / 'tests')
 
 if get_option('gen_demo0')
   subdir('demo0')
